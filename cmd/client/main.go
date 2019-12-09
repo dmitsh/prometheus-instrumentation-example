@@ -14,17 +14,19 @@ func main() {
 	paths := []string{"/api", "/home", "/store", "/user"}
 
 	for {
-		path := paths[rand.Intn(len(paths))]
-		resp, err := http.Get(server + path)
+		url := server + paths[rand.Intn(len(paths))]
+		fmt.Printf("GET %s\n", url)
+		resp, err := http.Get(url)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
+			continue
 		}
 		_, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 		}
+		fmt.Println("Response status:", resp.Status)
 		resp.Body.Close()
 		time.Sleep(100 * time.Millisecond)
 	}
-
 }

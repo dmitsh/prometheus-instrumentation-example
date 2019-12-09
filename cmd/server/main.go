@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/dmitsh/prometheus-instrumentation-example/internal/sim"
 	"github.com/prometheus/client_golang/prometheus"
@@ -11,12 +13,11 @@ import (
 )
 
 var (
-	gauge = promauto.NewGaugeVec(
+	gauge = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "cpu_percent_used",
-			Help: "CPU percent used.",
-		},
-		[]string{"host", "module", "set"})
+			Name: "request_headers",
+			Help: "Number of request headers.",
+		})
 
 	counter = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -42,21 +43,29 @@ var (
 		[]string{"path", "status_code"})
 )
 
-func requestHandler(w http.ResponseWriter, r *http.Request) {
+func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// simulate response
-	status := sim.GenerateStatusCode()
+	code := sim.GenerateStatusCode()
+	status := strconv.Itoa(code)
 	reqTime := sim.GenerateRequestTime()
 	respSize := sim.GenerateResponseSize()
 
 	// update metrics
-	//gauge.WithLabelValues(host, module, set).Set(cpu)
+	gauge.Set(float64(len(r.Header)))
 	counter.WithLabelValues(r.URL.Path, status).Inc()
 	histogram.WithLabelValues(r.URL.Path, status).Observe(reqTime)
 	summary.WithLabelValues(r.URL.Path, status).Observe(respSize)
+
+	switch code {
+	case http.StatusOK:
+		fmt.Fprintf(w, "OK %s", r.URL.Path[1:])
+	default:
+		http.Error(w, "Error", code)
+	}
 }
 
 func main() {
-	http.HandleFunc("/", requestHandler)
+	http.HandleFunc("/", handleRequest)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

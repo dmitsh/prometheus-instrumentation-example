@@ -2,6 +2,7 @@ package sim
 
 import (
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -19,10 +20,10 @@ func generateValue(cdf []int, values []interface{}) interface{} {
 	return values[bucket]
 }
 
-func GenerateStatusCode() string {
+func GenerateStatusCode() int {
 	// 200: OK, 401: Unauthorized, 503: Service Unavailable
-	status := generateValue([]int{80, 95, 100}, []interface{}{"200", "401", "503"})
-	return status.(string)
+	status := generateValue([]int{80, 95, 100}, []interface{}{http.StatusOK, http.StatusUnauthorized, http.StatusServiceUnavailable})
+	return status.(int)
 }
 
 func GenerateResponseSize() float64 {

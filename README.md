@@ -18,7 +18,7 @@ make
 When deployed with Promethus server, the following PromQL queries might be helpful to get webserver operational status:
 
 ###### Average process memory use:
-`avg_over_time(go_memstats_alloc_bytes[5m])`
+`avg_over_time(go_memstats_alloc_bytes[1m])`
 
 ###### Request rate:
 `sum(rate(http_requests_total[1m]))`
